@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>R Skill Tree</title>
+  <link href="https://fonts.googleapis.com/css2?family=Monofonto&display=swap" rel="stylesheet" />
+  <style>
+    body {
+  background-color: #000;
+  background-image: url("bg.png"); /* your image here */
+  background-repeat: repeat;              /* or no-repeat */
+  background-size: cover;                 /* or 'contain', or fixed size like '1920px auto' */
+  background-position: center center;
+  color: #00ccff;
+  font-family: 'Monofonto';
+  margin: 0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 100vh;
+  gap: 1rem;
+}
+
+
+    h1 {
+      width: 100%;
+      max-width: 900px;
+      color: #00ccff;
+      text-shadow: 0 0 10px #00ccff, 0 0 20px #00ccff, 0 0 30px #00ccff;
+      margin-bottom: 0;
+    }
+
+    .container {
+      display: flex;
+      width: 100%;
+      max-width: 900px;
+      gap: 2rem;
+    }
+
+    .tree {
+      display: flex;
+      flex-direction: column;
+      gap: 15px; /* vertical gap between rows */
+      user-select: none;
+      flex-shrink: 0;
+      width: 300px; /* enough to fit the hex grid */
+    }
+
+    .row {
+      display: flex;
+      gap: 25px; /* horizontal gap between hexes */
+      height: 86.6px;
+    }
+
+    /* offset for staggered rows */
+    .row:nth-child(2),
+    .row:nth-child(4) {
+      margin-left: 62.5px;
+    }
+
+    .node {
+      position: relative;
+      width: 100px;
+      height: 86.6px;
+     clip-path: polygon(
+     25% 0%, 75% 0%,
+     100% 50%, 75% 100%,
+     25% 100%, 0% 50%
+      );
+      background:
+        linear-gradient(145deg, rgba(20, 30, 40, 0.9), rgba(5, 10, 20, 0.9)),
+        linear-gradient(45deg, #003a66, #001f33);
+      border: 1px solid #00ccff;
+      box-shadow:
+        inset 0 0 15px rgba(0, 204, 255, 0.6),
+        0 0 10px #00ccff,
+        0 0 20px #00ccff,
+        0 0 30px #00ccff;
+      color: #00ccff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      z-index: 2;
+      overflow: visible;
+      text-align: center;
+      padding: 0 5px;
+    }
+
+    .node::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      left: 15px;
+      width: 70px;
+      height: 40px;
+      background:
+        linear-gradient(135deg, rgba(0, 204, 255, 0.15), rgba(0, 80, 120, 0.6));
+      clip-path: polygon(
+        50% 0%,
+        93% 25%,
+        50% 50%,
+        7% 25%
+      );
+      border-left: 2px solid #00ccff;
+      border-top: 2px solid #00ccff;
+      border-right: 2px solid #00ccff;
+      box-shadow: 0 0 12px rgba(0, 204, 255, 0.7);
+      transform-origin: bottom center;
+      border-radius: 10px 10px 0 0;
+      z-index: 3;
+    }
+
+    .node::after {
+      content: "";
+      position: absolute;
+      top: 20px;
+      right: -25px;
+      width: 25px;
+      height: 86.6px;
+      background:
+        linear-gradient(45deg, rgba(0, 102, 153, 0.7), rgba(0, 50, 75, 0.9));
+      clip-path: polygon(
+        0 7%,
+        100% 25%,
+        100% 75%,
+        0 93%
+      );
+      border-top: 2px solid #00ccff;
+      border-right: 2px solid #00ccff;
+      border-bottom: 2px solid #00ccff;
+      box-shadow: 0 0 12px rgba(0, 204, 255, 0.7);
+      transform-origin: top left;
+      border-radius: 0 10px 10px 0;
+      z-index: 1;
+    }
+
+    .node:hover {
+      transform: scale(1.1);
+      box-shadow:
+        inset 0 0 25px rgba(0, 204, 255, 0.8),
+        0 0 40px #00ccff,
+        0 0 70px #00ccff;
+      filter: brightness(1.1);
+      z-index: 5;
+    }
+
+    .modal {
+      flex-grow: 1;
+      background: rgba(0, 0, 0, 0.4); /* Transparent dark */
+      backdrop-filter: blur(8px);        /* Glass effect */
+      border: 2px solid #00ccff;
+      color: #00ccff;
+      padding: 1rem;
+      max-width: 550px;
+      border-radius: 10px;
+      box-shadow: 0 0 30px #00ccff;
+      font-family: 'Monofonto';
+      white-space: pre-wrap;
+      overflow-y: auto;
+      max-height: 70vh;
+      display: none;
+      position: relative; /* relative to container */
+    }
+
+    .modal code {
+      background: #000000;
+      padding: 0.3rem;
+      display: block;
+      margin: 0.3rem 0;
+      border-radius: 5px;
+    }
+
+    /* Remove overlay since modal is always on right */
+    .overlay {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1> Data Management Skill Tree</h1>
+  <div class="container">
+    <div class="tree">
+      <div class="row">
+        <div class="node" onclick="showModal('import')"><img src="imp.png" alt="Import" /></div>
+        <div class="node" onclick="showModal('create')">Create</div>
+      </div>
+      <div class="row">
+        <div class="node" onclick="showModal('explore')">Explore</div>
+      </div>
+      <div class="row">
+        <div class="node" onclick="showModal('add')">Add</div>
+        <div class="node" onclick="showModal('revalue')">Revalue</div>
+      </div>
+      <div class="row">
+        <div class="node" onclick="showModal('export')">Export</div>
+        <div class="node" onclick="showModal('merge')">Merge</div>
+      </div>
+    </div>
+
+    <div id="modal" class="modal">Click a hex to see details here.</div>
+  </div>
+
+  <script>
+    const content = {
+      import: `
+<strong>Import Functions:</strong>
+<code style="font-family:Monofonto">read.csv("file.csv")</code>
+<code style="font-family:Monofonto">read.table(file, sep = ",")</code>
+<code style="font-family:Monofonto">readxl::read_excel(path)</code>
+<code style="font-family:Monofonto">haven::read_dta(path)</code>
+      `,
+      create: `
+<strong>Create Data:</strong>
+<code style="font-family:Monofonto">data.frame(col1 = ..., col2 = ...)</code>
+<code style="font-family:Monofonto">as.data.frame(table_data)</code>
+<code style="font-family:Monofonto">data("practice_dataframe")</code>
+<strong>Create via sub-setting:</strong>
+<code style="font-family:Monofonto">data.2 <- data[,] </code>
+<code style="font-family:Monofonto">data.2 <- data[data$sex == “Male”,] # All male data with all columns</code>
+<code style="font-family:Monofonto">data.3 <- data[data$age < 18, 1:5] # All data where age less than 18 with only column 1 to 5</code>
+<code style="font-family:Monofonto">data.2 <- subset(x = data, subset = specify_condition)</code>
+<code style="font-family:Monofonto">data.2 <- subset(data, subset = sex == “Male”) # All male data with all columns</code>
+
+
+      `,
+      explore: `
+<strong>Explore Structure:</strong>
+<code style="font-family:Monofonto">str(data)</code>
+<code style="font-family:Monofonto">summary(data)</code>
+<code style="font-family:Monofonto">colnames(data)</code>
+<code style="font-family:Monofonto">nrow(data), ncol(data)</code>
+<code style="font-family:Monofonto">glimpse(data)</code>
+<code style="font-family:Monofonto">table(data$var)</code>
+<code style="font-family:Monofonto">hist(data$age)</code>
+      `,
+      add: `
+<strong>Add Columns:</strong>
+<code style="font-family:Monofonto">data$new.column <- ………</code>
+<code style="font-family:Monofonto">id <- 1:100</code>
+<code style="font-family:Monofonto">data$age.more.than.18 <- data$age > 18</code>
+      `,
+      revalue: `
+<strong>Revalue Columns:</strong>
+<code style="font-family:Monofonto">data$age.group <- ifelse(data$age > 18, yes = “Adult”,
+                  no = “Child/teenage”)
+</code>
+<code style="font-family:Monofonto">plyr::mapvalues(x = data$sex, from = c(1,2),
+            to = c(“Male”,Female”)
+</code>
+      `,
+      export: `
+<strong>Export Functions:</strong>
+<code style="font-family:Monofonto">write.csv(data, "file.csv")</code>
+<code style="font-family:Monofonto">write.table(data, "file.txt")</code>
+<code style="font-family:Monofonto">saveRDS(data, "file.rds")</code>
+      `,
+      merge: `
+<strong>Merge Data:</strong>
+<code style="font-family:Monofonto">plyr::mapvalues(x = data$sex, from = c(1,2),
+            to = c(“Male”,Female”)
+</code>
+<code style="font-family:Monofonto">plyr::mapvalues(x = data$sex, from = c(1,2),
+            to = c(“Male”,Female”)
+</code>
+<code style="font-family:Monofonto"># All ID in demographic is kept despite if there are lacks of clinical data</code>
+      `
+    };
+
+    function showModal(id) {
+      document.getElementById("modal").innerHTML = content[id];
+      document.getElementById("modal").style.display = "block";
+    }
+  </script>
+</body>
+</html>
